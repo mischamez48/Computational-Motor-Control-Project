@@ -1,0 +1,41 @@
+\begin{thebibliography}{1}
+
+\bibitem{grillner2019current}
+S.~Grillner and A.~El~Manira, ``Current principles of motor control, with
+  special reference to vertebrate locomotion,'' {\em Physiological reviews},
+  2019.
+
+\bibitem{ramdya2023neuromechanics}
+P.~Ramdya and A.~J. Ijspeert, ``The neuromechanics of animal locomotion: From
+  biology to robotics and back,'' {\em Science Robotics}, vol.~8, no.~78,
+  p.~eadg0279, 2023.
+
+\bibitem{picton_spinal_2021}
+L.~D. Picton, M.~Bertuzzi, I.~Pallucchi, P.~Fontanel, E.~Dahlberg, E.~R.
+  Björnfors, F.~Iacoviello, P.~R. Shearing, and A.~El~Manira, ``A spinal organ
+  of proprioception for integrated motor action feedback,'' {\em Neuron},
+  vol.~109, pp.~1188--1201.e7, Apr. 2021.
+
+\bibitem{pazzaglia2025balancing}
+A.~Pazzaglia, A.~Bicanski, A.~Ferrario, J.~Arreguit, D.~Ryczko, and
+  A.~Ijspeert, ``Balancing central control and sensory feedback produces
+  adaptable and robust locomotor patterns in a spiking, neuromechanical model
+  of the salamander spinal cord,'' {\em PLOS Computational Biology}, vol.~21,
+  no.~1, p.~e1012101, 2025.
+
+\bibitem{tytell2014role}
+E.~D. Tytell, C.-Y. Hsu, and L.~J. Fauci, ``The role of mechanical resonance in
+  the neural control of swimming in fishes,'' {\em Zoology}, vol.~117, no.~1,
+  pp.~48--56, 2014.
+
+\bibitem{ampatzis2014separate}
+K.~Ampatzis, J.~Song, J.~Ausborn, and A.~El~Manira, ``Separate microcircuit
+  modules of distinct v2a interneurons and motoneurons control the speed of
+  locomotion,'' {\em Neuron}, vol.~83, no.~4, pp.~934--943, 2014.
+
+\bibitem{ijspeert2007swimming}
+A.~J. Ijspeert, A.~Crespi, D.~Ryczko, and J.-M. Cabelguen, ``From swimming to
+  walking with a salamander robot driven by a spinal cord model,'' {\em
+  Science}, vol.~315, no.~5817, pp.~1416--1420, 2007.
+
+\end{thebibliography}
