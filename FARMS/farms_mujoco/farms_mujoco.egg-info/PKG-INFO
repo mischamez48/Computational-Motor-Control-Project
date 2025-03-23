@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: farms_mujoco
+Version: 0.1
+Summary: FARMS package for running simulations with MuJoCo
+Author: farmsdev
+Author-email: biorob-farms@groupes.epfl.ch
+Keywords: farms simulation mujoco
+Requires-Dist: farms_core
+Requires-Dist: cython
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: tqdm
+Requires-Dist: trimesh
+Requires-Dist: dm_control
+Requires-Dist: imageio

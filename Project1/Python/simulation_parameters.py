@@ -66,6 +66,9 @@ class SimulationParameters:
         self.initial_phases = None  # np.linspace(2*np.pi, 0, 30)
 
         # parameters of the sine controller
+        # self.amp = 0.3        # Amplitude of the sine wave (A)
+        # self.twl = 1.0        # Total wave lag (TWL)
+        # self.freq = 3.0       # Frequency of the sine wave (f)
 
         # parameters of the abstract oscillator
         self.drive = 4  # drive to the abstract oscillator controller

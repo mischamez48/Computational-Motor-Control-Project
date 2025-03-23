@@ -1,0 +1,9 @@
+cython
+numpy
+nptyping
+matplotlib
+scipy
+PyYAML
+trimesh
+h5py
+colorama

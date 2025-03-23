@@ -1,0 +1,14 @@
+MANIFEST.in
+requirements.txt
+setup.py
+farms_sim/__init__.py
+farms_sim/simulation.py
+farms_sim.egg-info/PKG-INFO
+farms_sim.egg-info/SOURCES.txt
+farms_sim.egg-info/dependency_links.txt
+farms_sim.egg-info/not-zip-safe
+farms_sim.egg-info/requires.txt
+farms_sim.egg-info/top_level.txt
+farms_sim/utils/__init__.py
+farms_sim/utils/parse_args.py
+farms_sim/utils/prompt.py

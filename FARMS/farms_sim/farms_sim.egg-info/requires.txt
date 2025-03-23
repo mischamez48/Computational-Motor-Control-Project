@@ -1,0 +1,5 @@
+farms_core
+farms_mujoco
+cython
+numpy
+trimesh
