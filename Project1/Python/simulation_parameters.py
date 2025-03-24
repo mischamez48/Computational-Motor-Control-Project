@@ -64,8 +64,11 @@ class SimulationParameters:
         # default parameters
         self.method = "euler"  # integration method (euler or noise)
         self.initial_phases = None  # np.linspace(2*np.pi, 0, 30)
-
-        # parameters of the sine controller
+        
+        # parameters of the sine controller 
+        self.amp = 0.0 
+        self.twl = 0.0 
+        self.freq = 0.0
 
         # parameters of the abstract oscillator
         self.drive = 4  # drive to the abstract oscillator controller

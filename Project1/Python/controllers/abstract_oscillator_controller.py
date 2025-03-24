@@ -91,6 +91,27 @@ class AbstractOscillatorController:
         # Implement equation here
         dphases = np.zeros(n_oscillators)
         damplitudes = np.zeros(n_oscillators)
+
+        phases = state[:n_oscillators]
+        amplitudes = state[n_oscillators::]
+        f = self.pars.cpg_frequency_gain*self.pars.drive + self.pars.cpg_frequency_offset
+
+        dphases += 2*np.pi*f
+        for i in range(n_oscillators):
+            for j in range(n_oscillators):
+                weight = 0
+                phi = 0
+                if abs(i-j)==1:
+                    weight = self.pars.weights_body2body
+                    phi = np.sign(i-j)*self.pars.phase_lag_body/(self.pars.n_joints-1)
+                elif abs(i-j)==self.pars.n_joints:
+                    weight = self.pars.weights_body2body_contralateral
+                    phi = np.sign(i-j)*np.pi
+                
+                dphases[i]+= amplitudes[j]*np.sin(phases[j]-phases[i]-phi)*weight
+            
+            damplitudes[i] = self.pars.amplitude_rates*(self.pars.cpg_amplitude_gain[i//2]*self.pars.drive-amplitudes[i])
+        
         return np.concatenate([dphases, damplitudes])
 
     def motor_output(self, iteration):
@@ -118,8 +139,8 @@ class AbstractOscillatorController:
         i.e. set only self.motor_out[iteration,:]
         """
         motor_output = np.zeros(self.n_oscillators)
+        motor_output = self.pars.motor_output_scaling*self.state[iteration, self.n_oscillators:]*(1+np.cos(self.state[iteration, :self.n_oscillators]))
         self.motor_out[iteration, :] = motor_output
-
         return motor_output
 
     def step_euler(self, iteration, timestep):
@@ -142,6 +163,7 @@ class AbstractOscillatorController:
         You return the muscle activation of all body joints at current iteration (array of 2*n_joints_total)
         which includes updated motor outputs from active joints and the motor outputs for passive joints.
         """
-        self.state[iteration+1, :] = self.state[iteration, :]
-        return (np.zeros(30))
+        self.state[iteration+1, :] = self.state[iteration, :] + self.f(self.state[iteration, :])*timestep
+        motor_output = np.concatenate([self.motor_output(iteration), np.zeros(4)])
+        return  motor_output
 

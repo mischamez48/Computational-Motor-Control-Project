@@ -47,5 +47,15 @@ class WaveController:
         In addition to returning the activation functions, store
         them in self.motor_out for later use offline
         """
-        return np.zeros(30)
+        activation_functions = np.zeros(30)
+
+        angle = 2*np.pi*(self.pars.freq*iteration*timestep-self.pars.twl*np.arange(self.n_total_joints)/self.n_total_joints)
+
+        activation_functions[self.motor_l] = 0.5 + self.pars.amp/2*np.sin(angle)
+        activation_functions[self.motor_r] = 0.5 - self.pars.amp/2*np.sin(angle)
+        
+        
+        self.motor_out[iteration] = activation_functions
+
+        return activation_functions
 
