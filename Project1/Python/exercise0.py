@@ -1,5 +1,5 @@
 
-import plotting_common
+from plotting_common import plot_2d, plot_1d, save_figures, plot_left_right, plot_trajectory, plot_time_histories, plot_time_histories_multiple_windows
 from util.run_closed_loop import run_single
 from simulation_parameters import SimulationParameters
 import matplotlib.pyplot as plt
@@ -16,61 +16,47 @@ def exercise0():
     log_path = './logs/exercise0/'
     os.makedirs(log_path, exist_ok=True)
 
-    # Parameter ranges
-    epsilon_values = np.linspace(0, 2, 3)  # Example: [0, 1, 2]
-    amplitude_values = np.linspace(0, 2, 3)  # Example: [0, 1, 2]
-    frequency_values = np.linspace(1, 5, 3)  # Example: [1, 3, 5] Hz
+    pars = SimulationParameters(
+        simulation_i=0,
+        n_iterations=5001,
+        controller="sine",
+        amp=1.3,
+        twl=1,
+        freq=3,
+        compute_metrics="all",
+        headless=True,
+        video_record=False,
+        log_path=log_path,
+        return_network=True,
+    )
 
-    for epsilon in epsilon_values:
-        for A in amplitude_values:
-            for f in frequency_values:
-                pylog.info(f"Running simulation for ε={epsilon}, A={A}, f={f}")
+    controller = run_single(
+        pars
+    )
+    
+    times = controller.times
+    state = controller.motor_out
+    left_idx = controller.motor_l
+    right_idx = controller.motor_r
 
-                pars = SimulationParameters(
-                    n_iterations=5001,
-                    controller="sine",
-                    amp=A,
-                    twl=epsilon,
-                    freq=f,
-                    compute_metrics="none",
-                    headless=True,
-                    video_record=False,
-                    log_path=log_path,
-                    return_network=True,
-                )
-                
-                controller = run_single(pars)
-                
-                # Extract data
-                times = np.array(controller.times)
-                joint_angles = np.array(controller.joint_angles)
-                head_positions = np.array(controller.links_positions)[:, 0, :2]
-                muscle_activations = np.array(controller.motor_outputs)
-                left_activations = muscle_activations[:, :15]
-                right_activations = muscle_activations[:, 15:]
+    plt.figure()
+    plot_left_right(times, state, left_idx, right_idx, cm="jet", offset=0.3)
+    plt.title("Left and Right Muscle Activations (Ml, Mr)")
+    # plt.tight_layout()
 
-                # Plot Muscle Activations
-                plt.figure(figsize=(12, 8))
-                plt.suptitle(f"Muscle Activations (ε={epsilon}, f={f}, A={A})")
-                plotting_common.plot_left_right(times, muscle_activations, left_idx=range(15), right_idx=range(15, 30))
-                plt.tight_layout()
-                plt.savefig(f"{log_path}/muscle_activations_e{epsilon}_A{A}_f{f}.png")
+    plt.figure("Head Trajectory")
+    plot_trajectory(controller)
+    # plt.tight_layout()
 
-                # Plot Joint Angles Evolution
-                plt.figure(figsize=(12, 6))
-                plt.title(f"Joint Angles Evolution (ε={epsilon}, f={f}, A={A})")
-                plotting_common.plot_time_histories(times, joint_angles)
-                plt.tight_layout()
-                plt.savefig(f"{log_path}/joint_angles_e{epsilon}_A{A}_f{f}.png")
+    
+    joint_angles = controller.joints_positions
+    n_joints = joint_angles.shape[1]
+    joint_labels = [f"Joint {i}" for i in range(n_joints)]
+    plot_time_histories_multiple_windows(times, joint_angles, labels=joint_labels, title="Joint Angles", closefig=False)
+    # plt.tight_layout()
 
-                # Plot Head Trajectory
-                plt.figure(figsize=(10, 8))
-                plt.title(f"Head Trajectory (ε={epsilon}, f={f}, A={A})")
-                plotting_common.plot_trajectory(controller, label="Head trajectory", color='blue')
-                plt.tight_layout()
-                plt.savefig(f"{log_path}/head_trajectory_e{epsilon}_A{A}_f{f}.png")
-
-    pylog.info("Simulation completed for all parameter combinations.")
+    plt.show()
+    # controller = load_object("logs/example_single/controller0")
 
 if __name__ == '__main__':
     exercise0()
