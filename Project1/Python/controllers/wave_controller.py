@@ -47,38 +47,15 @@ class WaveController:
         In addition to returning the activation functions, store
         them in self.motor_out for later use offline
         """
-        # Get current time
-        current_time = iteration * timestep
+        activation_functions = np.zeros(30)
 
-        # Initialize motor activations array
-        motor_activations = np.zeros(2 * self.n_total_joints)
+        angle = 2*np.pi*(self.pars.freq*iteration*timestep-self.pars.twl*np.arange(self.n_total_joints)/self.n_total_joints)
 
-        # Get parameters from self.pars
-        frequency = self.pars.freq
-        amplitude = self.pars.amp
-        total_wave_lag = self.pars.twl
-
-        # Loop through each joint to calculate its activation
-        for i in range(self.n_total_joints):
-           # Calculate position index (normalized by the number of total joints)
-            pos_index = i / (self.n_joints)
-
-            # Calculate left muscle activation using the equation from the instructions
-            ml = 0.5 + amplitude/2 * np.sin(2*np.pi * (frequency * current_time - 
-                                                    total_wave_lag * pos_index))
-            
-            # Calculate right muscle activation using the equation from the instructions
-            mr = 0.5 - amplitude/2 * np.sin(2*np.pi * (frequency * current_time - 
-                                                    total_wave_lag * pos_index))
-            
-            # Set the left and right muscle activations in the array
-            motor_activations[2*i] = ml     # Left muscle (even indexes)
-            motor_activations[2*i+1] = mr   # Right muscle (odd indexes)
-
-
-
-        # Store the motor activations for later use
-        self.motor_out[iteration, :] = motor_activations
+        activation_functions[self.motor_l] = 0.5 + self.pars.amp/2*np.sin(angle)
+        activation_functions[self.motor_r] = 0.5 - self.pars.amp/2*np.sin(angle)
         
-        return motor_activations
+        
+        self.motor_out[iteration] = activation_functions
+
+        return activation_functions
 
