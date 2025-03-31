@@ -25,12 +25,47 @@ REF_JOINT_AMP = np.array([
     0.0,      # Note: Tail moves passively,
 ])  # type: ignore unit:radian
 
+def GradientDescent(lr = 0.1, itermax = 100, tolerance = 0.01):
+    
+    log_path = './logs/exercise4/'
+    os.makedirs(log_path, exist_ok=True)
+
+    cpg_amplitude_gain = 0.125 * np.ones(13)
+    simulate(0, cpg_amplitude_gain, log_path)
+    controller = load_object('{}controller{}'.format(log_path, 0))
+    A_res = controller.metrics["mech_joint_amplitudes"]
+
+    iter = 1
+    error_joint_amp = np.linalg.norm(REF_JOINT_AMP-A_res)
+
+    while error_joint_amp > tolerance and iter<itermax:
+        cpg_amplitude_gain = cpg_amplitude_gain*(1 + lr*(-1+REF_JOINT_AMP[:-2]/A_res[:-2]))
+        simulate(iter, cpg_amplitude_gain, log_path)
+        controller = load_object('{}controller{}'.format(log_path, iter))
+        A_res = controller.metrics["mech_joint_amplitudes"]
+        error_joint_amp = np.linalg.norm(REF_JOINT_AMP-A_res)
+        iter += 1
+
+        if iter%10==0:
+            print(f"Error at step {iter} : {error_joint_amp}")
+
+    if iter<itermax:
+        print(f"Number max of iteration reached. Error of {error_joint_amp}")
+
+    if error_joint_amp > tolerance:
+        print(f"Error below tolerance reached after {iter} iterations. Error of {error_joint_amp}")
+
+    return cpg_amplitude_gain
 
 def exercise4():
 
     pylog.info("Implement ex 4")
     log_path = './logs/exercise4/'
     os.makedirs(log_path, exist_ok=True)
+
+    cpg_amplitude_gain = GradientDescent(lr = 0.15, itermax = 100, tolerance = 0.01)
+
+    print(cpg_amplitude_gain)
 
 
 def simulate(trial, cpg_amplitude_gain, log_path):

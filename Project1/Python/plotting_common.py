@@ -242,8 +242,8 @@ def plot_time_histories_multiple_windows(
         plt.ylabel(ylabel)
         plt.xlim(xlim)
         plt.ylim(ylim)
-    if labels:
-        plt.legend()
+        if labels:
+            plt.legend()
     plt.xlabel(xlabel)
     plt.grid(False)
     if xticks:
