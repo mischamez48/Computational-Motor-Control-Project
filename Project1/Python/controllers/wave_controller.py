@@ -58,4 +58,3 @@ class WaveController:
         self.motor_out[iteration] = activation_functions
 
         return activation_functions
-

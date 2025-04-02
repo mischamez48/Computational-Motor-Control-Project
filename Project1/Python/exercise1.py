@@ -15,12 +15,23 @@ ylim_amp = [0, 0.01]
 
 
 def question_2_2():
-
-    # Should remove the wave controller term for this one?
-
+    """
+    Run simulations to investigate the effect of different damping ratios (DR) on joint dynamics.
+    
+    This function simulates a zebrafish model with different damping factors and no controller input 
+    (amp=0) to observe the passive joint dynamics. The simulations are run:
+    - In zero gravity environment (gravity=np.zeros(3))
+    - With an initial joint angle configuration of 0.3π for all joints
+    - 10 meters above ground to eliminate water drag effects
+    
+    Parameters tested:
+    - Damping ratios (DR): [1.0, 0.3, 0.1] representing overdamped, critically damped,
+      and underdamped configurations respectively
+    
+    """
     prepath = './logs/exercise1/question_2_2/'
     DR = [1, 0.3, 0.1]
-    animal_pose = [0.0, 0.0, 0.1, 0.0, 0, -1.570796327]
+    animal_pose = [0.0, 0.0, 10.0, 0.0, 0, -1.570796327] #10 meters above ground
     pars_list = [
         SimulationParameters(
             simulation_i=i,
@@ -53,44 +64,58 @@ def question_2_2():
         plot_time_histories(controller.times, 
                             joint_angles, 
                             labels=joint_labels, 
-                            title="Joint Angles", 
-                            closefig=True, 
-                            savepath=save_dir + "DR_"+str(DR[i]).replace('.', '_'))
+                            title=f"Joint Angles (DR={DR[i]})", 
+                            closefig=False, 
+                            savepath=save_dir + " Joint Angles_DR_"+str(DR[i]).replace('.', '_'))
+        plt.grid(True)
         plt.show()
     
-def question_2_3(animal_pose, twl = 0, savename="" ):
+def question_2_3(animal_pose, twl=0):
+    """
+    Runs a systematic study of the effect of the wave controller frequency 
+    on joint amplitudes for different damping ratios.
+    
+    Parameters:
+    - animal_pose: List with position coordinates - determines if in water or space
+    - twl: Total wave lag value (default 0)
+    - savename: Filename suffix for saving the plot
+
+    """
     prepath = './logs/exercise1/question_2_3/'
     nsim = 20
 
     DR = [1, 0.3, 0.1]
     frequencies = np.linspace(0, 20, nsim)
-    amp=0.01
+    amp = 0.01
+    
+    # Determine environment type for the title
+    environment = "Space" if animal_pose[2] > 0 else "Water"
 
     pars_list = [
         SimulationParameters(
             simulation_i=i*nsim+j,
             n_iterations=1001,
-            log_path= prepath,
+            log_path=prepath,
             damping_factor=dr,
             video_record=False,
             headless=True,
-            controller="empty",
+            controller="sine",  # Using wave controller
             amp=amp,
             twl=twl,
             freq=freq,
             gravity=np.zeros(3),
-            joint_poses=0.3*np.ones(15), # joint angles at 0.3pi
-            animal_pose = animal_pose,
+            joint_poses=0.3*np.ones(15),  # joint angles at 0.3pi
+            animal_pose=animal_pose,
             print_metrics=False,
             compute_metrics='mechanical',
         )
         for i, dr in enumerate(DR)
-        for j, freq in enumerate(np.linspace(0, 20, nsim))
+        for j, freq in enumerate(frequencies)
     ]
     run_multiple(pars_list, num_process=num_process)
 
     DR_cases_list = []
-    for i in range(3):
+    for i in range(len(DR)):
         mean_lists = []
         for j in range(nsim):
             controller = load_object(prepath+"controller"+str(i*nsim+j))
@@ -105,45 +130,56 @@ def question_2_3(animal_pose, twl = 0, savename="" ):
     save_dir = './plots/exercise1/question_2_3/'
     os.makedirs(save_dir, exist_ok=True)
     
-    plt.figure("Mean Joint Amplitude vs Frequency", figsize=(10, 6))
-    # Use your provided plot_time_histories function.
-    # The x-axis is frequency, and the state array has 3 columns (one per DR case).
     plot_time_histories(
         frequencies,
         DR_cases,
         labels=labels,
-        title="Mean Joint Amplitude vs Frequency",
-        ylabel="Mean Joint Amplitude",
+        title=f"Mean Joint Amplitude vs Frequency (TWL={twl}, {environment})",
+        ylabel="Mean Joint Amplitude [rad]",
         xlabel="Frequency [Hz]",
-        closefig=True,  # Keep the figure open for further modification (like legend)
-        savepath=save_dir + savename
+        closefig=False,  # FALSE = Don't close the figure yet
+        savepath=f"{save_dir}Mean_Joint_Amplitude_vs_Frequency_TWL_{twl}_{environment}.png"
     )
-    # plt.legend()
-    # plt.show()
+    
+    # Add grid for better readability
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.tight_layout()
+    plt.show()
 
 def question_2_4(muscle_parameters_tag):
-    # Ensure that SimulationParameters, run_multiple, load_object, and plot_time_histories are imported or defined
+    """
+    Studies the relationship between activation frequency and total wave lag (TWL)
+    for a specific muscle parameter configuration.
+    
+    Parameters:
+    - muscle_parameters_tag: String identifier for the muscle parameter set to use
 
+    """
     prepath = './logs/exercise1/question_2_4/'
 
     frequencies = np.arange(3, 41, 2)  # frequencies from 3 to 40 Hz
-    # frequencies = np.arange(3, 6, 2)
     nsim = frequencies.shape[0]
     TWL = np.arange(0.0, 2.1, 0.2)      # TWL values from 0.0 to 2.0
-    # TWL = np.arange(0.0, 0.5, 0.2)
     amp = 0.5
+
+    # Extract resonant frequency from muscle parameter tag for reference
+    # Format is FN_XXXX where XXXX is frequency in 0.1Hz (e.g., 5000 means 5Hz)
+    try:
+        resonant_freq = float(muscle_parameters_tag.split('_')[1])/1000
+    except:
+        resonant_freq = None
 
     pars_list = [
         SimulationParameters(
             simulation_i=i + j * nsim,
             n_iterations=1001,
             log_path=prepath,
-            amp = amp,
+            amp=amp,
             freq=freq,
             twl=twl,
             video_record=False,
             headless=True,
-            controller="empty",
+            controller="sine",  # FIXED: Use sine wave controller instead of empty
             gravity=np.zeros(3),
             joint_poses=0.3 * np.ones(15),  # joint angles at 0.3*pi
             muscle_parameters_tag=muscle_parameters_tag,
@@ -165,7 +201,7 @@ def question_2_4(muscle_parameters_tag):
         for i in range(nsim):      # Inner loop over frequency values
             controller = load_object(prepath + "controller" + str(j * nsim + i))
             speed = controller.metrics["mech_speed_fwd"]
-            cot =controller.metrics["mech_cot"]
+            cot = controller.metrics["mech_cot"]
             speed_list.append(speed)
             cot_list.append(cot)
         TWL_speed_list.append(speed_list)
@@ -174,35 +210,74 @@ def question_2_4(muscle_parameters_tag):
     TWL_speeds = np.array(TWL_speed_list).T
     TWL_cot = np.array(TWL_cot_list).T
 
-    labels = [f"TWL = {twl}" for twl in TWL]
+    labels = [f"TWL = {twl:.1f}" for twl in TWL]
     save_dir = './plots/exercise1/question_2_4/'
     os.makedirs(save_dir, exist_ok=True)
 
-    plt.figure("Mechanical speed forward vs Frequency", figsize=(10, 6))
     plot_time_histories(
         frequencies,
         TWL_speeds,
         labels=labels,
-        title="Mechanical speed forward vs Frequency",
-        ylabel="Mechanical speed forward",
+        title=f"Forward Speed vs Frequency ({muscle_parameters_tag})",
+        ylabel="Forward Speed [m/s]",
         xlabel="Frequency [Hz]",
-        closefig=True,
-        savepath = save_dir+muscle_parameters_tag
+        closefig=False,
+        savepath=save_dir+muscle_parameters_tag
     )
+    
+    # Add grid for better readability
+    plt.grid(True, linestyle='--', alpha=0.6)
+    
+    # Add vertical line at resonant frequency if available
+    if resonant_freq:
+        plt.axvline(x=resonant_freq, color='red', linestyle='--', alpha=0.7)
+        plt.text(resonant_freq, plt.ylim()[1]*0.9, f"ω_r={resonant_freq}Hz", 
+                 rotation=90, verticalalignment='top', color='red')
+    
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
 
-    plt.figure("Mechanical cot vs Frequency", figsize=(10, 6))
+    # Cost of transport (CoT).
+    # The cost of transport relates the energy expenditure to the distance traveled.
+    # CoT = E/D_fwd, where D_fwd is the forward distance covered by the center of mass.
+
     plot_time_histories(
         frequencies,
         TWL_cot,
         labels=labels,
-        title="Mechanical cot vs Frequency",
-        ylabel="Mechanical cot",
+        title=f"Cost of Transport vs Frequency ({muscle_parameters_tag})",
+        ylabel="Cost of Transport [J/m]",
         xlabel="Frequency [Hz]",
-        closefig=True,
-        savepath = save_dir+muscle_parameters_tag+"_cot"
+        closefig=False,
+        savepath=save_dir+muscle_parameters_tag+"_cot"
     )
-    # plt.legend()
-    # plt.show()
+    
+    # Add grid for better readability
+    plt.grid(True, linestyle='--', alpha=0.6)
+    
+    # Add vertical line at resonant frequency if available
+    if resonant_freq:
+        plt.axvline(x=resonant_freq, color='red', linestyle='--', alpha=0.7)
+        plt.text(resonant_freq, plt.ylim()[1]*0.9, f"ω_r={resonant_freq}Hz", 
+                 rotation=90, verticalalignment='top', color='red')
+    
+    plt.legend(loc='best')
+    plt.tight_layout()
+    plt.show()
+    
+    # Optional: Create a 2D heatmap visualization of speed vs frequency and TWL
+    speed_2d = TWL_speeds.T  # Reshape for 2D plot (rows=TWL, cols=frequency)
+    
+    plt.figure(figsize=(10, 8))
+    plt.pcolormesh(frequencies, TWL, speed_2d, shading='auto', cmap='viridis')
+    plt.colorbar(label='Forward Speed [m/s]')
+    plt.xlabel('Frequency [Hz]')
+    plt.ylabel('Total Wave Lag')
+    plt.title(f'Forward Speed Heatmap ({muscle_parameters_tag})')
+    plt.tight_layout()
+    plt.savefig(save_dir+muscle_parameters_tag+"_heatmap")
+    plt.show()
 
 def exercise1():
 
@@ -210,13 +285,13 @@ def exercise1():
     pylog.info("Implement exercise 1")
     prepath = './logs/exercise1/'
     
-    #The other one to test 
-    animal_pose = [0.0, 0.0, 0.1, 0.0, 0, -1.570796327] # Should be 10 meters above ground but error in the pdf
+    # Initialization of the simulation parameters
+    animal_pose = [0.0, 0.0, 10.0, 0.0, 0, -1.570796327] # Should be 10 meters above ground but error in the pdf
     animal_pose_default = [0.0, 0.0, -0.01, 0.0, 0, -1.570796327]
+    damping_factor = 1 # damping factor for the simulation
 
     # Question 2.2
-    question_2_2()
-    damping_factor = 1
+    #question_2_2()
 
     # pars = SimulationParameters(
     #         simulation_i=0,
@@ -246,21 +321,21 @@ def exercise1():
     
 
     # Question 2.3
-    # question_2_3(animal_pose_default, twl=0, savename="water_twl_0")
-    # question_2_3(animal_pose, twl=0, savename="space_twl_0")
-    # question_2_3(animal_pose_default, twl=0.5, savename="water_twl_05")
-    # question_2_3(animal_pose, twl=0.5, savename="space_twl_05")
+    #question_2_3(animal_pose_default, twl=0)
+    #question_2_3(animal_pose, twl=0)
+    #question_2_3(animal_pose_default, twl=0.5)
+    #question_2_3(animal_pose, twl=0.5)
 
     # Question 2.4
     muscle_parameters_tags = ["FN_5000_ZC_1000_G0_419",
                               "FN_7500_ZC_1000_G0_419",
                               "FN_10000_ZC_1000_G0_419"]
-    # for muscle_parameters_tag in muscle_parameters_tags:
-    #     question_2_4(muscle_parameters_tag)
+    
+    for muscle_parameters_tag in muscle_parameters_tags:
+        question_2_4(muscle_parameters_tag)
     
 
 
 if __name__ == '__main__':
 
     exercise1()
-
