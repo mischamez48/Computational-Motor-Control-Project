@@ -87,78 +87,71 @@ class AbstractOscillatorController:
         The computation of the above-mentioned parameters can go in another custom function or
         be implemented here directly.
         """
-        # n_oscillators = self.n_oscillators
-        # # Implement equation here
-        # dphases = np.zeros(n_oscillators)
-        # damplitudes = np.zeros(n_oscillators)
-
-        # phases = state[:n_oscillators]
-        # amplitudes = state[n_oscillators::]
-        # f = self.pars.cpg_frequency_gain*self.pars.drive + self.pars.cpg_frequency_offset
-
-        # dphases += 2*np.pi*f
-        # for i in range(n_oscillators):
-        #     for j in range(n_oscillators):
-        #         weight = 0
-        #         phi = 0
-        #         if abs(i-j)==1:
-        #             weight = self.pars.weights_body2body
-        #             phi = np.sign(i-j)*self.pars.phase_lag_body/(self.pars.n_joints-1)
-        #         elif abs(i-j)==self.pars.n_joints:
-        #             weight = self.pars.weights_body2body_contralateral
-        #             phi = np.sign(i-j)*np.pi
-                
-        #         dphases[i]+= amplitudes[j]*np.sin(phases[j]-phases[i]-phi)*weight
-            
-        #     damplitudes[i] = self.pars.amplitude_rates*(self.pars.cpg_amplitude_gain[i//2]*self.pars.drive-amplitudes[i])
-        
-        # return np.concatenate([dphases, damplitudes])
+        total_joints = self.pars.n_total_joints
         n = self.n_oscillators
+        n_joints = self.pars.n_joints
         phases = state[self.oscillator_phase_all]
         amplitudes = state[self.oscillator_amplitude_all]
-        
-        # Frequency offset contribution (same for all oscillators)
-        f = self.pars.cpg_frequency_gain * self.pars.drive + self.pars.cpg_frequency_offset
-        dphases = 2 * np.pi * f * np.ones_like(phases)
-        
-        # Create index differences for all oscillator pairs
-        indices = np.arange(n)
-        diff_indices = indices[:, None] - indices[None, :]  # shape (n, n)
-        abs_diff = np.abs(diff_indices)
-        
-        n_joints = self.pars.n_total_joints
-        # Identify coupling conditions
-        cond_body = (abs_diff == 1)
-        cond_contra = (abs_diff == n_joints)
-        
-        # Build the phase offset matrix:
-        # For adjacent oscillators: phase offset proportional to sign(diff) and normalized phase lag.
-        # For contralateral oscillators: phase offset is sign(diff)*pi.
-        phi_matrix = np.where(
-            cond_body,
-            np.sign(diff_indices) * (self.pars.phase_lag_body / (n_joints - 1)),
-            0.0
-        )
-        phi_matrix = np.where(cond_contra, np.sign(diff_indices) * np.pi, phi_matrix)
-        
-        # Build the weight matrix with corresponding coupling weights:
-        weight_matrix = np.where(cond_body, self.pars.weights_body2body, 0.0)
-        weight_matrix = np.where(cond_contra, self.pars.weights_body2body_contralateral, weight_matrix)
-        
-        # Compute the phase differences between oscillators (phases[j] - phases[i])
-        phase_diff = phases[None, :] - phases[:, None]
-        
-        # Compute coupling effect for each oscillator:
-        # For each i, sum over j: amplitudes[j] * sin( (phases[j]-phases[i]) - phi_matrix[i,j] ) * weight_matrix[i,j]
-        coupling_effect = np.sum(weight_matrix * np.sin(phase_diff - phi_matrix) * amplitudes[None, :], axis=1)
-        dphases += coupling_effect
 
-        # Vectorized computation of amplitude derivatives:
-        # cpg_amplitude_gain is defined per joint and repeated for each oscillator of the joint.
-        cpg_amp_gain = np.repeat(self.pars.cpg_amplitude_gain, 2)
-        damplitudes = self.pars.amplitude_rates * (cpg_amp_gain * self.pars.drive - amplitudes)
-    
+        f = self.pars.cpg_frequency_gain * self.pars.drive + self.pars.cpg_frequency_offset
+        dphases = 2 * np.pi * f * np.ones(n)
+        damplitudes = np.zeros(n)
+        cpg_amplitude_gain = np.concatenate([self.pars.cpg_amplitude_gain]*2)
+
+        for i in range(n):
+            for j in range(n):
+                if i==j:
+                    continue
+                diff = i-j
+                if abs(diff)==1 and (((i<n_joints)and(j<n_joints))or((i>=n_joints)and(j>=n_joints))):
+                    phi = np.sign(diff)*self.pars.phase_lag_body / (total_joints - 1)
+                    dphases[i] +=  amplitudes[j]*self.pars.weights_body2body * np.sin((phases[j] - phases[i]) - phi)
+
+                elif abs(diff)== n_joints:
+                    phi = np.sign(diff)*np.pi
+                    dphases[i] +=  amplitudes[j]*self.pars.weights_body2body_contralateral * np.sin((phases[j] - phases[i]) - phi)
+            
+            R = cpg_amplitude_gain[i]* self.pars.drive
+            damplitudes[i] = self.pars.amplitude_rates * (R - amplitudes[i])
+        
         return np.concatenate([dphases, damplitudes])
+    
+        # for vectorisation (chatGPT)
+
+        # if not hasattr(self, "coupling_weights_matrix"):
+        #     # We compute the weights and the phase lags once for efficiency
+
+        #     indices = np.arange(n)
+        #     side = np.concatenate([np.zeros(n_joints, dtype=int), np.ones(n_joints, dtype=int)])
+        #     chain_indices = np.concatenate([np.arange(n_joints), np.arange(n_joints)])
+            
+        #     diff_matrix = indices[:, None] - indices[None, :]
+        #     abs_diff = np.abs(diff_matrix)
+            
+        #     cond_body = (abs_diff == 1) & (side[:, None] == side[None, :])
+        #     cond_contra = (abs_diff == n_joints) & (chain_indices[:, None] == chain_indices[None, :])
+            
+        #     phi_matrix = np.zeros((n, n))
+        #     phi_matrix[cond_body] = np.sign(diff_matrix[cond_body]) * (self.pars.phase_lag_body / (n_joint - 1))
+        #     phi_matrix[cond_contra] = np.sign(diff_matrix[cond_contra]) * np.pi
+            
+        #     weight_matrix = np.zeros((n, n))
+        #     weight_matrix[cond_body] = self.pars.weights_body2body
+        #     weight_matrix[cond_contra] = self.pars.weights_body2body_contralateral
+            
+        #     self.phi_matrix = phi_matrix
+        #     self.coupling_weights_matrix = weight_matrix
+
+        # f = self.pars.cpg_frequency_gain * self.pars.drive + self.pars.cpg_frequency_offset
+        # dphases = 2 * np.pi * f * np.ones_like(phases)
+        # phase_diff = phases[None, :] - phases[:, None]
+        # coupling_effect = np.sum(self.coupling_weights_matrix * np.sin(phase_diff - self.phi_matrix) * amplitudes[None, :], axis=1)
+        # dphases += coupling_effect
+
+        # cpg_amp_gain = np.concatenate([self.pars.cpg_amplitude_gain] * 2)
+        # damplitudes = self.pars.amplitude_rates * (cpg_amp_gain * self.pars.drive - amplitudes)
+    
+        # return np.concatenate([dphases, damplitudes])
 
     def motor_output(self, iteration):
         """
@@ -185,7 +178,10 @@ class AbstractOscillatorController:
         i.e. set only self.motor_out[iteration,:]
         """
         motor_output = np.zeros(self.n_oscillators)
-        motor_output = self.pars.motor_output_scaling*self.state[iteration, self.n_oscillators:]*(1+np.cos(self.state[iteration, :self.n_oscillators]))
+
+        # Left motors
+        motor_output[self.motor_l] = self.pars.motor_output_scaling*self.state[iteration, self.oscillator_amplitude_l]*(1+np.cos(self.state[iteration, self.oscillator_phase_l]))
+        motor_output[self.motor_r] = self.pars.motor_output_scaling*self.state[iteration, self.oscillator_amplitude_r]*(1+np.cos(self.state[iteration, self.oscillator_phase_r]))
         self.motor_out[iteration, :] = motor_output
         return motor_output
 

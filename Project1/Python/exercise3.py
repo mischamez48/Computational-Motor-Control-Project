@@ -10,6 +10,22 @@ from util.rw import load_object
 
 num_process = 10
 
+REF_JOINT_AMP = np.array([
+    0.06580,
+    0.02810,
+    0.02781,
+    0.03047,
+    0.03623,
+    0.04127,
+    0.04864,
+    0.05398,
+    0.06508,
+    0.08945,
+    0.10271,
+    0.11789,
+    0.14929      # Note: Tail moves passively,
+])  # type: ignore unit:radian
+
 def question_3_3():
 
     log_path = './logs/exercise3/'  # path for logging the simulation data
@@ -22,15 +38,15 @@ def question_3_3():
         compute_metrics=None,
         print_metrics=False,
         return_network=True,
-        drive = 4,
+        drive = 1,
         cpg_frequency_gain = 0.6,
         cpg_frequency_offset = 0.6,
         cpg_amplitude_gain = 0.125 * np.ones(13),
         weights_body2body = 30,
         weights_body2body_contralateral = 10,
         phase_lag_body = 2*np.pi,
-        amplitude_rates = 20,
-        motor_output_scaling = 1,
+        amplitude_rates = 1,
+        motor_output_scaling = .5,
         # headless=False,
     )
 
@@ -41,34 +57,42 @@ def question_3_3():
     save_dir = './plots/exercise3/question_3_3/'
     os.makedirs(save_dir, exist_ok=True)
 
-    print(controller.__dict__.keys())
+    # print(controller.__dict__.keys())
     # print(controller.oscillator_phase_all.shape)
     phases = controller.state[:, :2*all_pars.n_joints]
+    # phases = (phases + np.pi) % (2*np.pi) - np.pi  # constrain phases to [-pi, pi]
+
     amplitudes = controller.state[:, 2*all_pars.n_joints:]
     motor_l = controller.motor_out[:, controller.motor_l]
     motor_r = controller.motor_out[:, controller.motor_r]
     motor_diff = motor_l - motor_r
     joint_angles = controller.joints_positions # divide by pi for real angles?
-    # joints_positions = controller.joints_positions 
+    # joints_positions = controller.joints_positions
+    print(phases.shape)
+    print(amplitudes.shape)
+    print(motor_l.shape)
+    print(motor_r.shape)
+    print(motor_diff.shape)
+    print(joint_angles.shape)
 
     # state = np.concatenate([phases, amplitudes, motor_l, motor_r, motor_diff, joint_angles], axis=1)
     plt.figure("phases")
-    plot_time_histories(controller.times, phases, closefig= False, savepath = save_dir+"phases")
+    plot_time_histories(controller.times, phases, ylabel=None, closefig= True, savepath = save_dir+"phases")
 
     plt.figure("amplitudes")
-    plot_time_histories(controller.times, amplitudes, closefig= False, savepath = save_dir+"amplitudes")
+    plot_time_histories(controller.times, amplitudes, ylabel=None, closefig= True, savepath = save_dir+"amplitudes")
     
     plt.figure("motor_l")
-    plot_time_histories(controller.times, motor_l, closefig= False, savepath = save_dir+"motor_l")
+    plot_time_histories(controller.times, motor_l, ylabel=None, closefig= True, savepath = save_dir+"motor_l")
 
     plt.figure("motor_r")
-    plot_time_histories(controller.times, motor_r, closefig= False, savepath = save_dir+"motor_r")
+    plot_time_histories(controller.times, motor_r, ylabel=None, closefig= True, savepath = save_dir+"motor_r")
 
     plt.figure("motor_diff")
-    plot_time_histories(controller.times, motor_diff, closefig= False, savepath = save_dir+"motor_diff")
+    plot_time_histories(controller.times, motor_diff, ylabel=None, closefig= True, savepath = save_dir+"motor_diff")
 
     plt.figure("joint_angles")
-    plot_time_histories(controller.times, joint_angles, closefig= False, savepath = save_dir+"joint_angles")
+    plot_time_histories(controller.times, joint_angles, ylabel=None, closefig= True, savepath = save_dir+"joint_angles")
     
     plt.show()
 
@@ -152,35 +176,35 @@ def question_3_4():
 def exercise3():
 
     pylog.info("Ex 3")
-    pylog.info("Implement exercise 3")
     log_path = './logs/exercise3/'  # path for logging the simulation data
     os.makedirs(log_path, exist_ok=True)
 
-    # all_pars = SimulationParameters(
-    #     n_iterations=5001,
-    #     controller="abstract oscillator",
-    #     log_path=log_path,
-    #     compute_metrics=None,
-    #     print_metrics=False,
-    #     return_network=True,
-    #     headless=False,
-    #     drive = 4,
-    #     cpg_frequency_gain = 0.6,
-    #     cpg_frequency_offset = 0.6,
-    #     cpg_amplitude_gain = 0.5 * np.ones(13),
-    #     weights_body2body = 30,
-    #     weights_body2body_contralateral = 10,
-    #     phase_lag_body = 2*np.pi,
-    #     amplitude_rates = 20,
-    #     motor_output_scaling = 1,
-    # )
+    all_pars = SimulationParameters(
+        n_iterations=5001,
+        controller="abstract oscillator",
+        log_path=log_path,
+        compute_metrics=None,
+        print_metrics=False,
+        return_network=True,
+        headless=False,
+        drive = 4,
+        cpg_frequency_gain = 0.6,
+        cpg_frequency_offset = 0.6,
+        cpg_amplitude_gain = 0.125 * np.ones(13),
+        weights_body2body = 30,
+        weights_body2body_contralateral = 10,
+        phase_lag_body = 2*np.pi,
+        amplitude_rates = 1,
+        motor_output_scaling = 1,
+    )
 
     pylog.info("Running the simulation")
     # controller = run_single(
     #     all_pars
     # )
-    # question_3_3()
-    question_3_4()
+
+    question_3_3()
+    # question_3_4()
     
     # Hint: Optionally you can use some helper function to generate the plots
     # such as (plot_time_histories)
