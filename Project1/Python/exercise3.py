@@ -38,12 +38,13 @@ def question_3_3():
         compute_metrics=None,
         print_metrics=False,
         return_network=True,
+        initial_phases = 0, 
         drive = 1,
         cpg_frequency_gain = 0.6,
         cpg_frequency_offset = 0.6,
-        cpg_amplitude_gain = 0.125 * np.ones(13),
-        weights_body2body = 30,
-        weights_body2body_contralateral = 10,
+        cpg_amplitude_gain = 0.125*np.ones(13),
+        weights_body2body = 300,
+        weights_body2body_contralateral = 100,
         phase_lag_body = 2*np.pi,
         amplitude_rates = 1,
         motor_output_scaling = .5,
@@ -100,7 +101,7 @@ def question_3_4():
 
     # Also test with the simulation
 
-    drives = np.linspace(1, 9, 8).astype(np.int8)
+    drives = np.linspace(1, 12, 11).astype(np.int8)
     prepath = './logs/exercise3/question_3_4/'
     pars_list = [
         SimulationParameters(
@@ -113,6 +114,14 @@ def question_3_4():
             print_metrics=False,
             compute_metrics='mechanical',
             drive = drive,
+            cpg_frequency_gain = 0.6,
+            cpg_frequency_offset = .6,
+            cpg_amplitude_gain = 0.125*np.ones(13),
+            weights_body2body = 30,
+            weights_body2body_contralateral = 10,
+            phase_lag_body = 2*np.pi,
+            amplitude_rates = 1,
+            motor_output_scaling = 1.,
         )
         for i, drive in enumerate(drives)
     ]
@@ -136,9 +145,10 @@ def question_3_4():
 
         # plt.figure("motor output")
         plot_time_histories(controller.times, 
-                            motor_output, 
-                            labels=motor_labels, 
-                            title="Motor outputs", 
+                            motor_output[:, controller.motor_l], 
+                            # labels=motor_labels, 
+                            title="Left Motor outputs", 
+                            ylabel=None,
                             closefig=True, 
                             savepath=save_dir + "drive_"+str(drives[i])#.replace('.', '_')
                             )
@@ -203,8 +213,8 @@ def exercise3():
     #     all_pars
     # )
 
-    question_3_3()
-    # question_3_4()
+    # question_3_3()
+    question_3_4()
     
     # Hint: Optionally you can use some helper function to generate the plots
     # such as (plot_time_histories)

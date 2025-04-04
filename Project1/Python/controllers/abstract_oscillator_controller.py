@@ -132,7 +132,7 @@ class AbstractOscillatorController:
         #     cond_contra = (abs_diff == n_joints) & (chain_indices[:, None] == chain_indices[None, :])
             
         #     phi_matrix = np.zeros((n, n))
-        #     phi_matrix[cond_body] = np.sign(diff_matrix[cond_body]) * (self.pars.phase_lag_body / (n_joint - 1))
+        #     phi_matrix[cond_body] = np.sign(diff_matrix[cond_body]) * (self.pars.phase_lag_body / (total_joints - 1))
         #     phi_matrix[cond_contra] = np.sign(diff_matrix[cond_contra]) * np.pi
             
         #     weight_matrix = np.zeros((n, n))
