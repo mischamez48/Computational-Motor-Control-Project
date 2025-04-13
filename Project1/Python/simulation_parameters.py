@@ -20,8 +20,6 @@ class SimulationParameters:
         self.n_passive_joints = 2  # number of passive joints
         self.timestep = 0.001  # integration time step
         self.n_iterations = 4001  # number of integration time steps
-        self.timestep = 0.001  # integration time step
-        self.n_iterations = 4001  # number of integration time steps
 
         # gui/recording parameters
         self.headless = True  # For headless mode (No GUI, could be faster)
