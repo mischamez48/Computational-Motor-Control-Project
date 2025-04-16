@@ -134,7 +134,7 @@ def question_4_2():
     os.makedirs(log_path, exist_ok=True)
 
     # Run optimization
-    cpg_amplitude_gain = GradientDescent(lr=0.1, itermax=100, tolerance=0.01)
+    cpg_amplitude_gain = GradientDescent(lr=0.03, itermax=5000, tolerance=0.01)
 
     # Load the last controller based on file names
     try:
