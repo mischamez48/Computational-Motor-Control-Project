@@ -19,12 +19,6 @@ from util.rw import load_object
 # Number of processes for parallel simulation runs
 num_process = 10
 
-# Reference joint amplitudes observed in real zebrafish (in radians)
-REF_JOINT_AMP = np.array([
-    0.06580, 0.02810, 0.02781, 0.03047, 0.03623, 0.04127, 0.04864,
-    0.05398, 0.06508, 0.08945, 0.10271, 0.11789, 0.14929  # Note: Tail moves passively
-])
-
 def question_3_2():
     """
     Test the basic implementation of the CPG network.
