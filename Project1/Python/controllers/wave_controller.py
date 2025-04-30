@@ -22,8 +22,6 @@ class WaveController:
 
         # motor output array for recording the motor outputs
         self.motor_out = np.zeros((pars.n_iterations, self.n_oscillators))
-        pylog.warning(
-            "Implement below the step function following the instructions here and in the report")
 
         # indexes of the left muscle activations (optional)
         self.motor_l = 2*np.arange(self.n_total_joints)

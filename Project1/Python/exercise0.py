@@ -181,5 +181,16 @@ def question1():
     return metrics_df
 
 
+def exercise0():
+    """
+    Main function to run the exercise 0 simulations and analyses.
+    """
+    pylog.info("Running Exercise 0: Parameter Testing")
+    
+    # Run the parameter test
+    question1()
+    
+
+
 if __name__ == '__main__':
     metrics_df = question1()

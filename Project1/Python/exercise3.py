@@ -203,9 +203,9 @@ def exercise3():
     )
 
     pylog.info("Running the simulation")
-    # controller = run_single(
-    #     all_pars
-    # )
+    controller = run_single(
+        all_pars
+    )
 
     question_3_3()
     question_3_4()
@@ -218,4 +218,4 @@ if __name__ == '__main__':
     # Choose which question to run by uncommenting the appropriate line
     # exercise3('3.2')  # Run only Question 3.2
     # exercise3('3.3')  # Run only Question 3.3
-    exercise3('3.4')  # Run only Question 3.4
+    exercise3()  # Run only Question 3.4

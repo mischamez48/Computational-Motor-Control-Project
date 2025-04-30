@@ -41,12 +41,6 @@ class EmptyController:
         In addition to returning the activation functions, store
         them in self.state for later use offline
         """
-        # activation_functions = np.zeros(30)
-        # angle = 2*np.pi*(self.pars.freq*iteration*timestep-self.pars.twl*np.arange(self.n_joints)/self.n_joints)
-
-        # activation_functions[self.muscle_l] = 0.5 + self.pars.amp/2*np.sin(angle)
-        # activation_functions[self.muscle_r] = 0.5 - self.pars.amp/2*np.sin(angle)
-        # self.state[iteration, :] = activation_functions
 
         return self.state[iteration, :]
 

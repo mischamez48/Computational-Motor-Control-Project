@@ -291,40 +291,14 @@ def exercise1():
     damping_factor = 1 # damping factor for the simulation
 
     # Question 2.2
-    #question_2_2()
-
-    # pars = SimulationParameters(
-    #         simulation_i=0,
-    #         n_iterations=5001,
-    #         log_path= prepath,
-    #         video_record=False,
-    #         compute_metrics='mechanical',
-    #         headless=False,
-    #         controller="empty",
-    #         damping_factor=damping_factor,
-    #         amp=0.,
-    #         twl=0,
-    #         freq=0,
-    #         animal_pose = animal_pose,
-    #         gravity=np.zeros(3),
-    #         joint_poses=0.3*np.ones(15), # joint angles at 0.3pi
-    #         print_metrics=False,
-    #         return_network=True
-    #     )
-    # controller = run_single(
-    #     pars
-    # )
-    # print(controller.metrics["mech_speed_fwd"])
-    # print(controller.__dict__.keys())
-    
-    # 
+    question_2_2()
     
 
     # Question 2.3
-    #question_2_3(animal_pose_default, twl=0)
-    #question_2_3(animal_pose, twl=0)
-    #question_2_3(animal_pose_default, twl=0.5)
-    #question_2_3(animal_pose, twl=0.5)
+    question_2_3(animal_pose_default, twl=0)
+    question_2_3(animal_pose, twl=0)
+    question_2_3(animal_pose_default, twl=0.5)
+    question_2_3(animal_pose, twl=0.5)
 
     # Question 2.4
     muscle_parameters_tags = ["FN_5000_ZC_1000_G0_419",
