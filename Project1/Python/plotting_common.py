@@ -6,7 +6,7 @@ import farms_pylog as pylog
 from matplotlib.colors import LogNorm
 from scipy.interpolate import griddata
 import matplotlib
-matplotlib.rc('font', **{"size": 20})
+matplotlib.rc('font', **{"size": 5})
 plt.rcParams["figure.figsize"] = (10, 10)
 
 
@@ -139,7 +139,7 @@ def plot_time_histories(
     xticks = kwargs.pop('xticks', None)
     yticks = kwargs.pop('yticks', None)
     xticks_labels = kwargs.pop('xticks_labels', None)
-    yticks_labels = kwargs.pop('xticks_labels', None)
+    yticks_labels = kwargs.pop('yticks_labels', None)
     closefig = kwargs.pop('closefig', True)
 
     n_signals = state.shape[1]
@@ -166,7 +166,11 @@ def plot_time_histories(
         raise Exception("Color list not a vector of the correct size!")
 
     if title:
-        plt.figure(title)
+        # This creates a figure with the name 'title', but doesn't set the visible title
+        plt.figure(title, figsize=(10, 6))
+        # Add this line to actually set the title that appears on the plot
+        plt.title(title)
+        
     for (idx, vector) in enumerate(state.transpose()):
         if not labels:
             label = None
@@ -178,8 +182,12 @@ def plot_time_histories(
             label=label,
             color=colors[idx],
             linewidth=lw)
+    
     if labels:
+        #plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0., fontsize=8)
+        #plt.tight_layout(rect=[0, 0, 0.8, 1])
         plt.legend()
+    
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.xlim(xlim)
@@ -190,7 +198,7 @@ def plot_time_histories(
     if yticks:
         plt.yticks(yticks, labels=yticks_labels)
     if savepath:
-        plt.savefig(savepath)
+        plt.savefig(savepath, bbox_inches='tight')
         if closefig:
             plt.close()
 
@@ -254,6 +262,107 @@ def plot_time_histories_multiple_windows(
         plt.savefig(savepath)
         if closefig:
             plt.close()
+
+def plot_joint_angles(times, joint_angles, title="Joint Angles", joint_labels=None, savepath=None, closefig=False):
+    """
+    Plot joint angles with a single x-axis label at the bottom and only one y-axis label.
+    All subplots have proper spacing with no overlap.
+    
+    Parameters:
+    -----------
+    times : array-like
+        Time values for the x-axis
+    joint_angles : 2D array
+        Joint angle data with shape (time_steps, n_joints)
+    title : str
+        Title for the entire figure
+    joint_labels : list, optional
+        List of labels for each joint. If None, defaults to "Joint 0", "Joint 1", etc.
+    savepath : str, optional
+        Path to save the figure. If None, the figure is not saved.
+    closefig : bool, optional
+        If True, the figure is closed after saving. Default is False.
+    
+    Returns:
+    --------
+    fig : matplotlib Figure
+        The created figure
+    """
+    n_joints = joint_angles.shape[1]
+    
+    # Create default joint labels if none provided
+    if joint_labels is None:
+        joint_labels = [f"Joint {i}" for i in range(n_joints)]
+    
+    # Ensure we have the right number of labels
+    if len(joint_labels) != n_joints:
+        raise ValueError(f"Number of joint labels ({len(joint_labels)}) must match number of joints ({n_joints})")
+    
+    # Create figure and axes
+    fig, axes = plt.subplots(n_joints, 1, figsize=(10, 12), sharex=True)
+    fig.suptitle(title, fontsize=16)
+    
+    # Adjust spacing between subplots - increase spacing to avoid overlap
+    plt.subplots_adjust(hspace=0.0, left=0.1, right=0.98, top=0.95, bottom=0.05)
+    
+    # Calculate global y limits to ensure entire signal is visible
+    min_val = np.min(joint_angles) - 0.05
+    max_val = np.max(joint_angles) + 0.05
+    
+    # Get exact x-limits from the data
+    x_min = np.min(times)
+    x_max = np.max(times)
+    
+    # Only add y-axis label to the middle subplot
+    middle_idx = n_joints // 2
+    
+    # Plot each joint
+    for i in range(n_joints):
+        ax = axes[i]
+        # Plot with the same blue color as used in the original codebase
+        ax.plot(times, joint_angles[:, i], color='#1f77b4', linewidth=1)
+        
+        # Set consistent y-limits with a buffer to avoid cutting off signals
+        ax.set_ylim(min_val, max_val)
+        
+        # Set x-limits to ensure the entire time range is shown
+        # Don't add any padding to ensure signal extends all the way to the end
+        ax.set_xlim(0, 5.0)
+        
+        # Add horizontal line at y=0
+        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        
+        # Make y-tick labels smaller
+        ax.tick_params(axis='y', labelsize=6)
+        
+        # Add joint label in a white box at the RIGHT side of each line
+        ax.text(0.98, 0.5, joint_labels[i], transform=ax.transAxes, 
+                fontsize=8, verticalalignment='center', horizontalalignment='right',
+                bbox=dict(facecolor='white', alpha=0.8, edgecolor='lightgray', pad=2))
+        
+        # Only show x-axis labels for the bottom subplot
+        if i < n_joints - 1:
+            ax.set_xticklabels([])
+        else:
+            ax.set_xlabel('Time [s]')
+        
+        # Add y-axis label only to the middle subplot
+        if i == middle_idx:
+            fig.text(0.03, 0.5, 'Activity [-]', va='center', rotation='vertical', fontsize=10)
+        
+        # Remove individual y-axis labels
+        ax.set_ylabel('')
+    
+    # Update layout to be tight and avoid overlaps
+    plt.tight_layout(rect=[0.05, 0.05, 0.95, 0.95])
+    
+    # Save the figure if savepath is provided
+    if savepath:
+        plt.savefig(savepath, dpi=300, bbox_inches='tight')
+        if closefig:
+            plt.close(fig)
+    
+    return fig
 
 
 def plot_1d(results, labels, n_data=300, log=False, cmap=None):
