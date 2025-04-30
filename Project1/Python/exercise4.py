@@ -270,10 +270,14 @@ def visualize_optimized_controller():
     )
     run_single(all_pars)
 
+def exercise4():
+    question_4_2()      # Optimisation plus plot
+    question_4_3()    # Metrics comparison
+    
 if __name__ == '__main__':
     # Launch one of the questions
     # exercise4()       # Gradient descent
-    # question_4_2()      # Optimisation plus plot
+    question_4_2()      # Optimisation plus plot
     question_4_3()    # Metrics comparison
     # visualize_optimized_controller()  # Visualize the optimized controller
     
