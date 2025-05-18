@@ -256,15 +256,20 @@ def visualize_optimized_controller():
         # Fallback approximation: original gain * (target/reference)
         cpg_amplitude_gain = 0.125 * (REF13 / np.clip(mech_amp, 1e-5, None))
 
-    # Rerun simulation with visualization
+    # Rerun simulation with visualization and video recording
     all_pars = SimulationParameters(
         log_path=log_path,
         simulation_i="visu",
-        headless=False,  # ATTENTION: interface graphique ouverte
+        headless=False,
+        fast=False,
+        video_record=True,
+        video_name="optimized_fish",
+        video_fps=50,
+        camera_id=2,
+        n_iterations=5001,
         compute_metrics="all",
         print_metrics=True,
         controller="abstract oscillator",
-        n_iterations=5001,  # ~5 seconds
         drive=8,
         cpg_amplitude_gain=cpg_amplitude_gain
     )
@@ -274,7 +279,7 @@ if __name__ == '__main__':
     # Launch one of the questions
     # exercise4()       # Gradient descent
     # question_4_2()      # Optimisation plus plot
-    question_4_3()    # Metrics comparison
-    # visualize_optimized_controller()  # Visualize the optimized controller
+    # question_4_3()    # Metrics comparison
+    visualize_optimized_controller()  # Visualize the optimized controller
     
 

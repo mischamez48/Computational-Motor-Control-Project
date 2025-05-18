@@ -45,19 +45,8 @@ def run_single(pars):
     """
 
     network = AbstractOscillatorController(pars)
-    dt = network.timestep
-    times = network.times
+
     # Run network ODE
-
-    solver = ode(f=network.f)
-    solver.set_initial_value(y=network.state[0], t=0.0)
-    solver.set_integrator(
-        'vode',
-        atol=1e-3,
-        rtol=1e-3,
-        method="bdf",
-    )
-
     _iterator = (
         tqdm(range(network.n_iterations-1))
         if network.pars.show_progress
@@ -65,9 +54,17 @@ def run_single(pars):
     )
 
     for i in _iterator:
-        # network.state[i+1, :] = step_ode(times[i], solver, dt)
-        network.state[i+1, :] = step_rk(times[i],
-                                        network.state[i, :], dt, network.f)
+
+        if network.pars.entraining_signals is None:
+            pos = None
+        else:
+            pos = network.pars.entraining_signals[i]
+
+        network.step_euler(
+            iteration=i,
+            timestep=network.timestep,
+            pos=pos,
+        )
 
     # Compute metrics
     if pars.compute_metrics in ['neural', 'all']:

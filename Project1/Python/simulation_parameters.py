@@ -20,6 +20,8 @@ class SimulationParameters:
         self.n_passive_joints = 2  # number of passive joints
         self.timestep = 0.001  # integration time step
         self.n_iterations = 4001  # number of integration time steps
+        self.timestep = 0.001  # integration time step
+        self.n_iterations = 4001  # number of integration time steps
 
         # gui/recording parameters
         self.headless = True  # For headless mode (No GUI, could be faster)
@@ -62,11 +64,8 @@ class SimulationParameters:
         # default parameters
         self.method = "euler"  # integration method (euler or noise)
         self.initial_phases = None  # np.linspace(2*np.pi, 0, 30)
-        
-        # parameters of the sine controller 
-        self.amp = 0.0 
-        self.twl = 0.0 
-        self.freq = 0.0
+
+        # parameters of the sine controller
 
         # parameters of the abstract oscillator
         self.drive = 4  # drive to the abstract oscillator controller
@@ -79,6 +78,9 @@ class SimulationParameters:
         self.weights_body2body_contralateral = 10
         self.phase_lag_body = 2*np.pi  # Total phase lag from body to tail along the spine
         self.amplitude_rates = 20  # Convergence rates of amplitudes
+        self.feedback_weights_ipsi = 0.0
+        self.feedback_weights_contra = 0.0
+        self.entraining_signals = None
 
         self.motor_output_scaling = 1  # muscle force scaling factor G
 
