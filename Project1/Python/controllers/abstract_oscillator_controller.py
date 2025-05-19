@@ -125,13 +125,13 @@ class AbstractOscillatorController:
 
             # Compute stretch feedback for each oscillator
             for seg in range(self.pars.n_joints):
-                a = pos[seg]    # alpha seg
+                alpha = pos[seg]    # alpha seg
 
                 # LEFT side
-                stretch[2*seg] = W_ipsi * max(0, +a) + W_contra * max(0, -a)
+                stretch[2*seg] = W_ipsi * max(0, +alpha) + W_contra * max(0, -alpha)
 
                 # RIGHT side
-                stretch[2*seg + 1] = W_ipsi * max(0, -a) + W_contra * max(0, +a)
+                stretch[2*seg + 1] = W_ipsi * max(0, -alpha) + W_contra * max(0, +alpha)
 
 
         # -----Phase derivative-----
@@ -153,8 +153,10 @@ class AbstractOscillatorController:
                     w_ij = weight_body
                     phi_ij = np.sign(i - j) * phi_body_total
 
-                elif delta == 1 and not same_side:
-                    # contralateral coupling
+                elif delta == 1 and (
+                    (j - i == 1 and i % 2 == 0) or  # left to right
+                    (i - j == 1 and i % 2 == 1)     # right to left
+                ):
                     w_ij = weight_contra
                     phi_ij = np.sign(i - j) * np.pi
                 else:
@@ -166,9 +168,15 @@ class AbstractOscillatorController:
 
             # -----Stretch feedback-----
             # amplitude gain for the oscillator
-            R_i = R[i // 2]
-            if stretch[i] > 0:
-                dtheta[i] -= (stretch[i] / R_i) * np.sin(theta[i])
+            
+            ####################
+            # R_i = R[i // 2]
+            # if stretch[i] > 0:
+            #     dtheta[i] -= (stretch[i] / R_i) * np.sin(theta[i])
+            ####################
+            if r[i] > 1e-4: # For numerical stability
+                dtheta[i] -= (stretch[i] / r[i]) * np.sin(theta[i])
+
         
         # -----Amplitude derivative-----
         for i in range(n_oscillators):
@@ -212,7 +220,6 @@ class AbstractOscillatorController:
 
         # store muscle output
         self.motor_out[iteration, :] = motor_output
-
         return motor_output
 
     def step_euler(self, iteration, timestep, pos=None):
