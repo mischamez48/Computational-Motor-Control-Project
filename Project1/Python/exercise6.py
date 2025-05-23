@@ -26,9 +26,8 @@ def question_5_4():
     transport, energy consumption, forward speed, joint amplitudes, sum of torques) as a function of 
     different ipsilateral and contralateral feedback strengths..
     """
-    FEEDBACK_GAIN_REF = 1/np.mean(REF_JOINT_AMP)
-    no_ipsi_simulations(FEEDBACK_GAIN_REF)
-    no_contra_simulations(FEEDBACK_GAIN_REF)
+    no_ipsi_simulations()
+    no_contra_simulations()
 
 def plt_exercise5_4(w, prepath, case="no_ipsi"):
     """
@@ -121,7 +120,7 @@ def plt_exercise5_4(w, prepath, case="no_ipsi"):
 
     print(f"Saved plots to: {save_dir}")
 
-def no_ipsi_simulations(FEEDBACK_GAIN_REF):
+def no_ipsi_simulations():
 
     w_contra_range = np.linspace(-1, 1, 20)
     prepath = './logs/exercise6/question_5_4/no_ipsi/'
@@ -135,9 +134,9 @@ def no_ipsi_simulations(FEEDBACK_GAIN_REF):
             controller="abstract oscillator",
             print_metrics=False,
             compute_metrics='all',
-            cpg_amplitude_gain = REF_JOINT_AMP, #[:-2]
+            cpg_amplitude_gain = REF_JOINT_AMP[:-2], #
             feedback_weights_ipsi = 0.0,
-            feedback_weights_contra = w_contra * FEEDBACK_GAIN_REF,
+            feedback_weights_contra = w_contra,
         )
         for i, w_contra in enumerate(w_contra_range)
     ]
@@ -146,7 +145,7 @@ def no_ipsi_simulations(FEEDBACK_GAIN_REF):
 
     plt_exercise5_4(w_contra_range, prepath, case = "no_ipsi" )
 
-def no_contra_simulations(FEEDBACK_GAIN_REF):
+def no_contra_simulations():
 
     w_ipsi_range = np.linspace(-1, 1, 20)
     prepath = './logs/exercise6/question_5_4/no_contra/'
@@ -160,15 +159,15 @@ def no_contra_simulations(FEEDBACK_GAIN_REF):
             controller="abstract oscillator",
             print_metrics=False,
             compute_metrics='all',
-            cpg_amplitude_gain = REF_JOINT_AMP, #[:-2]
-            feedback_weights_ipsi =  w_ipsi * FEEDBACK_GAIN_REF,
+            cpg_amplitude_gain = REF_JOINT_AMP[:-2], #[:-2]
+            feedback_weights_ipsi =  w_ipsi,
             feedback_weights_contra = 0.0,
         )
         for i, w_ipsi in enumerate(w_ipsi_range)
     ]
 
     run_multiple(pars_list, num_process=NUM_PROCESS)
-    w_scaled = w_ipsi_range * FEEDBACK_GAIN_REF
+    w_scaled = w_ipsi_range
     plt_exercise5_4(w_scaled, prepath, case = "no_contra" )
 
 def question_5_4_2d():
@@ -176,10 +175,9 @@ def question_5_4_2d():
     Sweep w_ipsi and w_contra values in [-1, 1] scaled by FEEDBACK_GAIN_REF.
     Plot all neural and mechanical metrics over the 2D grid.
     """
-    FEEDBACK_GAIN_REF = 1 / np.mean(REF_JOINT_AMP)
-    run_2d_feedback_sweep(FEEDBACK_GAIN_REF)
+    run_2d_feedback_sweep()
 
-def run_2d_feedback_sweep(FEEDBACK_GAIN_REF):
+def run_2d_feedback_sweep():
     w_range = np.linspace(-1, 1, 20)
     prepath = './logs/exercise6/question_5_4/full_2d/'
     pars_list = []
@@ -196,9 +194,9 @@ def run_2d_feedback_sweep(FEEDBACK_GAIN_REF):
                 controller="abstract oscillator",
                 print_metrics=False,
                 compute_metrics='all',
-                cpg_amplitude_gain=REF_JOINT_AMP,
-                feedback_weights_ipsi=w_ipsi * FEEDBACK_GAIN_REF,
-                feedback_weights_contra=w_contra * FEEDBACK_GAIN_REF,
+                cpg_amplitude_gain=REF_JOINT_AMP[:-2], 
+                feedback_weights_ipsi=w_ipsi,
+                feedback_weights_contra=w_contra,
             ))
 
     run_multiple(pars_list, num_process=NUM_PROCESS)
@@ -257,27 +255,9 @@ def plt_exercise5_4_2d(param_grid, prepath):
 
 def exercise6():
 
-
-    question_5_4_2d()
     question_5_4()
+    question_5_4_2d()
 
-    # print( -1.0/np.mean(REF_JOINT_AMP[:-2]))
-    # all_pars = SimulationParameters(
-    #     n_iterations=5001,
-    #     controller="abstract oscillator",
-    #     compute_metrics=None,
-    #     print_metrics=False,
-    #     return_network=True,
-    #     headless=False,
-    #     cpg_amplitude_gain = REF_JOINT_AMP[:-2], #[:-2]
-    #     feedback_weights_ipsi = 1.0/np.mean(REF_JOINT_AMP[:-2]),
-    #     feedback_weights_contra = -1.0/np.mean(REF_JOINT_AMP[:-2]), #[-2:]
-    # )
-
-    # pylog.info("Running the simulation")
-    # controller = run_single(
-    #     all_pars
-    # )
 
 if __name__ == '__main__':
 

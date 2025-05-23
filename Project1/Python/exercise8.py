@@ -21,7 +21,6 @@ def exercise8():
 
     log_path = './logs/exercise8/'
 
-    FEEDBACK_GAIN_REF = 1/np.mean(REF_JOINT_AMP)
     w_range = np.linspace(0, 2, 20)
     frequencies = np.linspace(3.5, 10, 100)
     
@@ -43,8 +42,8 @@ def exercise8():
                 print_metrics=False,
                 compute_metrics='all',
                 cpg_amplitude_gain=REF_JOINT_AMP,
-                feedback_weights_ipsi=w_ipsi * FEEDBACK_GAIN_REF,
-                feedback_weights_contra=w_contra * FEEDBACK_GAIN_REF,
+                feedback_weights_ipsi=w_ipsi,
+                feedback_weights_contra=w_contra,
                 entraining_signals=entraining_signals,
             ))
 

@@ -17,7 +17,7 @@ ws_ref = hyperparameters["ws_ref"]
 def exercise7():
 
     entraining_signals = define_entraining_signals(n_iterations=5001, frequency=8, amplitude_degrees=45, plot_signals=False)
-    # log_path = './logs/exercise7/'  # path for logging the simulation data
+    log_path = './logs/exercise7/'  # path for logging the simulation data
     # # os.makedirs(log_path, exist_ok=True)
     # print(entrainement_signal)
     # print(np.linspace(-1, 1, 20))
@@ -26,6 +26,7 @@ def exercise7():
         n_iterations=5001,
         controller="abstract oscillator",
         compute_metrics='all',
+        log_path=log_path,
         print_metrics=False,
         return_network=True,
         headless=False,

@@ -24,6 +24,13 @@ class AbstractOscillatorController:
 
         # Abstract oscillator parameters
         self.n_oscillators = 2*self.pars.n_joints
+        self.freqs = np.zeros(self.n_oscillators)
+        self.coupling_weights = np.zeros(
+            [self.n_oscillators, self.n_oscillators,])
+        self.phase_bias              = np.zeros([self.n_oscillators, self.n_oscillators])
+        self.rates                   = np.zeros(self.n_oscillators)
+        self.nominal_amplitudes      = np.zeros(self.n_oscillators)
+        self.update(pars)
 
         # States
         self.n_eq = self.n_oscillators*2  # oscillator phase + oscillator amp
@@ -34,10 +41,8 @@ class AbstractOscillatorController:
         self.oscillator_phase_l = 2 * np.arange(0, self.pars.n_joints)
         self.oscillator_phase_r = 2 * np.arange(0, self.pars.n_joints) + 1
         self.oscillator_phase_all = np.arange(0, 2*self.pars.n_joints)
-        self.oscillator_amplitude_l = self.pars.n_joints * \
-            2 + 2 * np.arange(0, self.pars.n_joints)
-        self.oscillator_amplitude_r = self.pars.n_joints * \
-            2 + 2 * np.arange(0, self.pars.n_joints) + 1
+        self.oscillator_amplitude_l = self.pars.n_joints * 2 + 2 * np.arange(0, self.pars.n_joints)
+        self.oscillator_amplitude_r = self.pars.n_joints * 2 + 2 * np.arange(0, self.pars.n_joints) + 1
         self.oscillator_amplitude_all = self.pars.n_joints * \
             2 + np.arange(0, 2*self.pars.n_joints)
 
@@ -45,14 +50,11 @@ class AbstractOscillatorController:
         if self.pars.initial_phases is None:
             self.state[0, 0:2*self.pars.n_joints-1:2] = 1 * \
                 np.linspace(2*np.pi, 0, self.pars.n_joints)
-            self.state[0, 1:2 *
-                       self.pars.n_joints:2] = np.linspace(np.pi, -
-                                                           np.pi, self.pars.n_joints)
+            self.state[0, 1:2*self.pars.n_joints:2] = np.linspace(np.pi, -np.pi, self.pars.n_joints)
         else:
             self.state[0, :2*self.pars.n_joints] = self.pars.initial_phases
 
-        self.state[0, self.n_oscillators:2 *
-                   self.n_oscillators] = np.zeros(self.n_oscillators)
+        self.state[0, self.n_oscillators:2 * self.n_oscillators] = np.zeros(self.n_oscillators)
 
         # motor output and indexes
         self.motor_out = np.zeros([self.n_iterations, self.n_oscillators])
@@ -65,6 +67,55 @@ class AbstractOscillatorController:
 
         # pre-computed zero activity for the last two tail joints
         self.zeros4 = np.zeros(4)
+
+    def update(self, parameters):
+        """Update network from parameters"""
+        self.set_frequencies(parameters)  # f_i
+        self.set_coupling_weights(parameters)  # w_ij
+        self.set_phase_bias(parameters)  # phi_ij
+        self.set_amplitudes_rate(parameters)  # a_i
+        self.set_nominal_amplitudes(parameters)  # R_i
+
+    def set_frequencies(self, parameters):
+        """Set frequencies"""
+        self.freqs[:self.n_oscillators] = 2*np.pi*(parameters.cpg_frequency_gain*parameters.drive + parameters.cpg_frequency_offset)
+
+    def set_coupling_weights(self, parameters):
+        """Set coupling weights"""
+        for i in range(self.n_oscillators):
+            for j in range(self.n_oscillators):
+                if abs(i-j)==2:
+                    self.coupling_weights[i, j] =  parameters.weights_body2body
+                elif j-i==1 and i%2==0:
+                    self.coupling_weights[i, j] =  parameters.weights_body2body_contralateral
+                elif i-j==1 and i%2==1:
+                    self.coupling_weights[i, j] =  parameters.weights_body2body_contralateral
+                else:
+                    self.coupling_weights[i, j] = 0
+
+
+    def set_phase_bias(self, parameters):
+        """Set phase bias"""
+        parameters.phase_lag_body /= (parameters.n_joints+parameters.n_passive_joints-1)
+        for i in range(self.n_oscillators):
+            for j in range(self.n_oscillators):
+                if abs(i-j)==2:
+                    self.phase_bias[i, j] = np.sign(i-j) * parameters.phase_lag_body
+                elif j-i==1 and i%2==0:
+                    self.phase_bias[i, j] = np.sign(i-j) * np.pi
+                elif i-j==1 and i%2==1:
+                    self.phase_bias[i, j] = np.sign(i-j) * np.pi
+                else:
+                    self.phase_bias[i, j] = 0
+
+    def set_nominal_amplitudes(self, parameters):
+        """Set nominal amplitudes"""
+        self.nominal_amplitudes[0:2*parameters.n_joints-1:2] = parameters.drive * parameters.cpg_amplitude_gain
+        self.nominal_amplitudes[1:2*parameters.n_joints:2] = parameters.drive * parameters.cpg_amplitude_gain
+
+    def set_amplitudes_rate(self, parameters):
+        """Set amplitude rates"""
+        self.rates[:] = parameters.amplitude_rates
 
     def network_ode(self, state, pos=None):
         """
@@ -79,41 +130,36 @@ class AbstractOscillatorController:
         dstate: <np.array>
             An array of size 2*n_oscillators storing the oscillator phases and amplitudes derivatives
             Note that phases and amplitudes have to appear in the same order as defined in states.
-        -------
-        This function is called each step to update the network states (amplitudes and phases).
-        Here you have to implement the Ordinary Differential Equation (ODE)
-        to compute the derivatives of network states.
-        For which you need CPG parameters  like nominal amplitudes, coupling weights, rates.
-        The computation of the above-mentioned parameters can go in another custom function or
-        be implemented here directly.
         """
         n_oscillators = self.n_oscillators
-        # Implement equation here
 
-        # -----Init-----
+        phases = state[:n_oscillators]
+        amplitudes = state[n_oscillators:2*n_oscillators]
+        phase_repeat = np.repeat(
+            np.expand_dims(phases, axis=1),
+            n_oscillators,
+            axis=1,
+        )
+
+        dphases = (
+            # Intrinsic frequencies
+            self.freqs
+            # Coupling
+            + np.sum(
+                amplitudes * self.coupling_weights.T * np.sin(
+                    phase_repeat.T - phase_repeat + self.phase_bias.T),
+                axis=1,
+            )
+        )
+
+        damplitudes = (
+            # Amplitude dynamics
+            self.rates * ( self.nominal_amplitudes - amplitudes)
+        )
+
         hyper = define_hyperparameters()
         ws_ref = hyper["ws_ref"]
 
-        # -----Needed parameters-----
-        theta = state[self.oscillator_phase_all]
-        # f= Gfreq·d+ offset cf. project 1
-        frequency = self.pars.cpg_frequency_gain * self.pars.drive + self.pars.cpg_frequency_offset
-        # coupling weights
-        weight_body = self.pars.weights_body2body
-        weight_contra = self.pars.weights_body2body_contralateral
-        # phase lag
-        phi_total = self.pars.phase_lag_body
-        phi_body_total = phi_total / ( self.pars.n_joints - 1)
-        # phase derivative
-        dtheta = np.zeros(n_oscillators)
-        # amplitude
-        r = state[self.oscillator_amplitude_all]
-        # amplitude derivative
-        dr = np.zeros(n_oscillators)
-        # amplitude convergence rate
-        a = self.pars.amplitude_rates
-        # amplitude gain
-        R = self.pars.cpg_amplitude_gain
     
         # -----Entraining stretch feedback-----
         stretch = np.zeros(n_oscillators)
@@ -133,56 +179,16 @@ class AbstractOscillatorController:
                 # RIGHT side
                 stretch[2*seg + 1] = W_ipsi * max(0, -alpha) + W_contra * max(0, +alpha)
 
-
-        # -----Phase derivative-----
-        for i in range(n_oscillators):
-            # 2 pi f component in the formula 6
-            dtheta[i] = 2 * np.pi * frequency
-
-            for j in range(n_oscillators):
-                # coupling from other oscillators than itself
-                if i == j:
-                    continue
-                
-                # coupling logic
-                delta = abs(i - j)
-                same_side = (i % 2 == j % 2)
-
-                if delta == 2 and same_side:
-                    # body2body coupling
-                    w_ij = weight_body
-                    phi_ij = np.sign(i - j) * phi_body_total
-
-                elif delta == 1 and (
-                    (j - i == 1 and i % 2 == 0) or  # left to right
-                    (i - j == 1 and i % 2 == 1)     # right to left
-                ):
-                    w_ij = weight_contra
-                    phi_ij = np.sign(i - j) * np.pi
-                else:
-                    # no coupling
-                    continue
-                
-                # compute the interaction term of the derivative
-                dtheta[i] += r[j] * w_ij * np.sin(theta[j] - theta[i] - phi_ij)
-
-            # -----Stretch feedback-----
-            # amplitude gain for the oscillator
-            
-            ####################
-            # R_i = R[i // 2]
-            # if stretch[i] > 0:
-            #     dtheta[i] -= (stretch[i] / R_i) * np.sin(theta[i])
-            ####################
-            if r[i] > 1e-4: # For numerical stability
-                dtheta[i] -= (stretch[i] / r[i]) * np.sin(theta[i])
-
         
         # -----Amplitude derivative-----
         for i in range(n_oscillators):
-            dr[i] = a * (R[i // 2] - r[i]) + stretch[i] * np.cos(theta[i])
+            
+            if amplitudes[i] > 1e-4: # For numerical stability
+                dphases[i] -= (stretch[i] / amplitudes[i]) * np.sin(phases[i])
+            
+            damplitudes[i] +=  stretch[i] * np.cos(phases[i])
 
-        return np.concatenate([dtheta, dr])
+        return np.concatenate([dphases, damplitudes])
 
     def motor_output(self, iteration):
         """
@@ -197,29 +203,15 @@ class AbstractOscillatorController:
         -------
         motor_output: <np.array>
             An array of size 2*n_active_joints storing the muscle activations
-        -------
-        Here you have to use phase, amplitude and muscle strength to
-        finalize muscle activations for the first 13 active joints.
-        even indexes (0,2,4,...) = left muscle activations
-        odd indexes (1,3,5,...) = right muscle activations
-
-        In addition to returning the motor output, store
-        them in self.motor_out for later use offline
-        Note: You only update and store the motor output at current iteration.
-        i.e. set only self.motor_out[iteration,:]
         """
         phase = self.state[iteration, self.oscillator_phase_all]
         amplitude = self.state[iteration, self.oscillator_amplitude_all]
         oscillator_output = amplitude*(1+np.cos(phase))
         motor_output = self.pars.motor_output_scaling*oscillator_output
 
-        # remapping oscillator to convention
-        # motor_output = np.zeros(self.n_oscillators)
-        # motor_output[::2] = output[:self.pars.n_joints]
-        # motor_output[1::2] = output[self.pars.n_joints:]
-
         # store muscle output
         self.motor_out[iteration, :] = motor_output
+
         return motor_output
 
     def step_euler(self, iteration, timestep, pos=None):
@@ -237,10 +229,6 @@ class AbstractOscillatorController:
         motor_output_all: <np.array>
             An array of size 2*n_joints_total storing the muscle activations for the active and
             passive joints at current sim itertaion
-        -------
-        Here you have to perform the Euler step on the oscillator states.
-        You return the muscle activation of all body joints at current iteration (array of 2*n_joints_total)
-        which includes updated motor outputs from active joints and the motor outputs for passive joints.
         """
 
         self.state[iteration+1, :] = (
