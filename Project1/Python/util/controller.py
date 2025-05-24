@@ -18,6 +18,11 @@ class ZebrafishController(AnimatNetwork):
         """Control step"""
         if iteration >= self.n_iterations-1:
             return
+        pos = np.array(self.data.sensors.joints.positions(iteration)[:-2])
         self.data.state.array[iteration] = np.concatenate(
-            [self.controller.step(iteration, timestep), self.offsets])
+            [
+                self.controller.step(iteration, timestep, pos=pos),
+                self.offsets
+            ]
+        )
 

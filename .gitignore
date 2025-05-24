@@ -7,8 +7,10 @@
 *.fdb_latexmk
 *.synctex.gz
 
+
 # Python
 __pycache__/
 FARMS/
 logs/
 .venv/
+plots/
