@@ -34,9 +34,6 @@ def plt_exercise5_4(w, prepath, case="no_ipsi"):
     Plot neural and mechanical metrics as a function of contralateral feedback strength.
     Joint amplitudes are plotted per joint.
     """
-    import os
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     save_dir = f'./plots/exercise6/question_5_4/{case}/'
     os.makedirs(save_dir, exist_ok=True)
@@ -209,9 +206,6 @@ def plt_exercise5_4_2d(param_grid, prepath):
     """
     Plot all metrics using plot_2d over w_ipsi vs w_contra.
     """
-    import os
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     save_dir = './plots/exercise6/question_5_4/full_2d/'
     os.makedirs(save_dir, exist_ok=True)
