@@ -26,7 +26,7 @@ def exercise8():
     os.makedirs(log_path, exist_ok=True)
     
     # Parameter ranges as specified
-    w_range = np.linspace(0, 2, 20)  # 20 values from 0 to 2
+    w_range = np.linspace(0, 27, 20)  # 20 values from 0 to 2
     frequencies = np.linspace(3.5, 10, 20)  # Reduced from 100 to 20 for faster computation
     
     # Create parameter list
@@ -36,9 +36,7 @@ def exercise8():
         for j, freq in enumerate(frequencies):
             sim_index = i * len(frequencies) + j
             
-            # CORRECTED: w_contra = -w_ipsi = w, so w_ipsi = w and w_contra = -w
-            # Also scale by FEEDBACK_GAIN_REF (which is ws_ref)
-            w_ipsi = w * ws_ref
+            w_ipsi = w* ws_ref
             w_contra = -w * ws_ref
             
             entraining_signals = define_entraining_signals(

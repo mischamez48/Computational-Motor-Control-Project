@@ -28,6 +28,7 @@ def visualize_swimming_comparison():
         compute_metrics='all',
         print_metrics=True,
         headless=False,  # Show GUI
+        return_network=True,  # Return network for visualization
         video_record=False,  # Don't save video
         fast=False,  # Real-time speed
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
@@ -51,13 +52,14 @@ def visualize_swimming_comparison():
         compute_metrics='all',
         print_metrics=True,
         headless=False,  # Show GUI
+        return_network=True,  # Return network for visualization
         video_record=False,
         fast=False,
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=0,  # No ipsilateral
         weights_body2body_contralateral=10,
-        feedback_weights_ipsi=1.0 * ws_ref,  # w=1.0 (best from results)
-        feedback_weights_contra=-1.0 * ws_ref,
+        feedback_weights_ipsi=7.11*ws_ref,
+        feedback_weights_contra=-7.11*ws_ref,
         initial_phases=np.random.uniform(-0.1, 0.1, 26),
     )
     
@@ -75,13 +77,14 @@ def visualize_swimming_comparison():
         compute_metrics='all',
         print_metrics=True,
         headless=False,  # Show GUI
+        return_network=True,  # Return network for visualization
         video_record=False,
         fast=False,
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=30,
         weights_body2body_contralateral=0,  # No contralateral
-        feedback_weights_ipsi=0.6 * ws_ref,  # w=0.6 (from results)
-        feedback_weights_contra=-0.6 * ws_ref,
+        feedback_weights_ipsi=7.11*ws_ref,
+        feedback_weights_contra=-7.11*ws_ref,
         initial_phases=np.random.uniform(-0.1, 0.1, 26),
     )
     
@@ -99,13 +102,14 @@ def visualize_swimming_comparison():
         compute_metrics='all',
         print_metrics=True,
         headless=False,  # Show GUI
+        return_network=True,  # Return network for visualization
         video_record=False,
         fast=False,
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=0,  # No ipsilateral
         weights_body2body_contralateral=0,  # No contralateral
-        feedback_weights_ipsi=0.6 * ws_ref,  # w=0.6
-        feedback_weights_contra=-0.6 * ws_ref,
+        feedback_weights_ipsi=0,
+        feedback_weights_contra=-0,
         initial_phases=np.random.uniform(-0.1, 0.1, 26),
     )
     
@@ -151,9 +155,9 @@ def visualize_specific_case(config_name, w_value):
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=w_b2b,
         weights_body2body_contralateral=w_contra,
-        feedback_weights_ipsi=w_value * ws_ref,
-        feedback_weights_contra=-w_value * ws_ref,
-        initial_phases=np.random.uniform(-0.1, 0.1, 26),
+        feedback_weights_ipsi=w_value,
+        feedback_weights_contra=-w_value,
+        return_network=True,
     )
     
     controller = run_single(pars)
@@ -166,4 +170,4 @@ if __name__ == '__main__':
     
     # Option 2: Visualize specific cases
     # visualize_specific_case('cpg_free', 0.8)
-    # visualize_specific_case('no_ipsi', 1.0)
+    #visualize_specific_case('no_contra',0.1)

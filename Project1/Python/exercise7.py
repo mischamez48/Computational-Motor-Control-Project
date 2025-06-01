@@ -35,8 +35,8 @@ def question_6_1():
         'return_network': True,
         'headless': True,
         'cpg_amplitude_gain': REF_JOINT_AMP[:-2],  # Only active joints
-        'feedback_weights_ipsi': 0.5,   # Some feedback to enable entrainment
-        'feedback_weights_contra': -0.5,
+        'feedback_weights_ipsi': 400,   # Some feedback to enable entrainment
+        'feedback_weights_contra': -400,
     }
     
     # 1. Run simulation WITHOUT entrainment (baseline)
@@ -111,7 +111,7 @@ def question_6_1():
     ax2.set_xlim([3, 5])  # Zoom in to see oscillations clearly
     
     plt.tight_layout()
-    plt.savefig(f"{plot_dir}motor_output_comparison.png", dpi=300)
+    plt.savefig(f"{plot_dir}w_1.png", dpi=300)
     plt.close()
     
     return freq_no_entrain, freq_entrain

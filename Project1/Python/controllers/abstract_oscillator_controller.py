@@ -157,17 +157,19 @@ class AbstractOscillatorController:
             self.rates * ( self.nominal_amplitudes - amplitudes)
         )
 
-        hyper = define_hyperparameters()
-        ws_ref = hyper["ws_ref"]
+        # hyper = define_hyperparameters()
+        # ws_ref = hyper["ws_ref"]
 
     
         # -----Entraining stretch feedback-----
         stretch = np.zeros(n_oscillators)
         if pos is not None:
             # Ipsilateral stretch feedback
-            W_ipsi = ws_ref * self.pars.feedback_weights_ipsi
+            #W_ipsi = ws_ref * self.pars.feedback_weights_ipsi
+            W_ipsi   = self.pars.feedback_weights_ipsi
             # Contralateral stretch feedback
-            W_contra = ws_ref * self.pars.feedback_weights_contra
+            #W_contra = ws_ref * self.pars.feedback_weights_contra
+            W_contra = self.pars.feedback_weights_contra
 
             # Compute stretch feedback for each oscillator
             for seg in range(self.pars.n_joints):
@@ -183,8 +185,8 @@ class AbstractOscillatorController:
         # -----Amplitude derivative-----
         for i in range(n_oscillators):
             
-            if amplitudes[i] > 1e-4: # For numerical stability
-                dphases[i] -= (stretch[i] / amplitudes[i]) * np.sin(phases[i])
+            if self.nominal_amplitudes[i] > 1e-6: # For numerical stability
+                dphases[i] -= (stretch[i] / self.nominal_amplitudes[i]) * np.sin(phases[i])
             
             damplitudes[i] +=  stretch[i] * np.cos(phases[i])
 

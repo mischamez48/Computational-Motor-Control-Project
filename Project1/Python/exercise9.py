@@ -39,6 +39,7 @@ def test_cpg_configurations(config_name, weights_body2body, weights_contralatera
             log_path=log_path + config_name + '/',
             video_record=False,
             headless=True,
+            return_network=True,
             controller="abstract oscillator",
             print_metrics=False,
             compute_metrics='all',
@@ -49,7 +50,6 @@ def test_cpg_configurations(config_name, weights_body2body, weights_contralatera
             # Feedback weights (scaled by ws_ref)
             feedback_weights_ipsi=w * ws_ref,
             feedback_weights_contra=-w * ws_ref,
-            # Initial perturbation to help initiate swimming
             initial_phases=np.random.uniform(-0.1, 0.1, 26),  # Small random initial phases
         ))
     
@@ -170,8 +170,8 @@ def run_detailed_comparison(success_w, success_result, config_name, log_path, pl
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=30,
         weights_body2body_contralateral=10,
-        feedback_weights_ipsi=1.0,
-        feedback_weights_contra=-1.0,
+        feedback_weights_ipsi=107.82,
+        feedback_weights_contra=-107.82,
         return_network=True,  # IMPORTANT: This was missing!
     )
     
@@ -188,16 +188,14 @@ def run_detailed_comparison(success_w, success_result, config_name, log_path, pl
         controller="abstract oscillator",
         compute_metrics='all',
         headless=True,
+        record_video=False,
+        return_network=True,
         cpg_amplitude_gain=REF_JOINT_AMP[:-2],
         weights_body2body=w_b2b,
         weights_body2body_contralateral=w_contra,
-        feedback_weights_ipsi=success_w * ws_ref,
-        feedback_weights_contra=-success_w * ws_ref,
+        feedback_weights_ipsi=success_w,
+        feedback_weights_contra=-success_w ,
         initial_phases=np.random.uniform(-0.1, 0.1, 26),
-        return_network=True,  # IMPORTANT: This was missing!
-        video_record=True,
-        video_name=f"{config_name}_swimming",
-        video_fps=50,
     )
     
     # Run simulations
@@ -282,7 +280,7 @@ def exercise9():
     os.makedirs(plot_dir, exist_ok=True)
     
     # Define feedback weight range to test
-    w_range = np.linspace(0, 2, 11)
+    w_range = np.linspace(0, 10, 11)
     
     # Question 7.1: Remove ipsilateral connections
     print("\n" + "="*80)
