@@ -99,7 +99,6 @@ def exercise5_2():
     plt.xlabel("Time (s)")
     plt.ylabel("Angle (rad)")
     plt.title("Joint angles evolution")
-    plt.legend(ncol=3, fontsize="small")
     plt.tight_layout()
     plt.savefig(os.path.join(log_path, "joint_angles.png"))
     plt.close()
@@ -169,6 +168,6 @@ def exercise5_3():
 
 
 if __name__ == '__main__':
-    # exercise5_2()
-    exercise5_3()
+    exercise5_2()
+    # exercise5_3()
 
