@@ -30,6 +30,8 @@ def exercise5_2():
         return_network=True,
         controller="abstract oscillator",
         n_iterations=1000,
+        feedback_weights_ipsi=0.25 * ws_ref,
+        feedback_weights_contra=-0.25 * ws_ref,
     )
 
     controller = run_single(all_pars)
@@ -122,6 +124,8 @@ def exercise5_3():
         n_iterations=10000,
         video_record=True,
         video_name="exercise5_3",
+        feedback_weights_ipsi=0.25 * ws_ref,
+        feedback_weights_contra=-0.25 * ws_ref,
     )
 
     # Run the simulation
@@ -165,6 +169,6 @@ def exercise5_3():
 
 
 if __name__ == '__main__':
-    #exercise5_2()
+    # exercise5_2()
     exercise5_3()
 
