@@ -30,6 +30,8 @@ def exercise5_2():
         return_network=True,
         controller="abstract oscillator",
         n_iterations=1000,
+        feedback_weights_ipsi=0.25 * ws_ref,
+        feedback_weights_contra=-0.25 * ws_ref,
     )
 
     controller = run_single(all_pars)
@@ -97,7 +99,6 @@ def exercise5_2():
     plt.xlabel("Time (s)")
     plt.ylabel("Angle (rad)")
     plt.title("Joint angles evolution")
-    plt.legend(ncol=3, fontsize="small")
     plt.tight_layout()
     plt.savefig(os.path.join(log_path, "joint_angles.png"))
     plt.close()
@@ -112,16 +113,17 @@ def exercise5_3():
 
     # Simulation parameters
     all_pars = SimulationParameters(
+        n_iterations=5001,
         log_path=log_path,
         simulation_i=0,
-        headless=True,
+        headless=False,
         compute_metrics="all",
         print_metrics=False,
         return_network=True,
         controller="abstract oscillator",
-        n_iterations=10000,
-        video_record=True,
-        video_name="exercise5_3",
+        video_record=False,
+        feedback_weights_ipsi=0.25 * ws_ref,
+        feedback_weights_contra=-0.25 * ws_ref,
     )
 
     # Run the simulation
@@ -159,12 +161,9 @@ def exercise5_3():
     fig.savefig(os.path.join(log_path, "joint_angles.png"))
     plt.close(fig)
 
-    pylog.info(f"Movie saved to {os.path.join(log_path, 'exercise5_swim.mp4')}")
-    pylog.info(f"Plots and metrics saved in {log_path}")
-
 
 
 if __name__ == '__main__':
-    exercise5_2()
-    #exercise5_3()
+    #exercise5_2()
+    exercise5_3()
 
