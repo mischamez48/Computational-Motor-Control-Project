@@ -123,8 +123,8 @@ def exercise5_3():
         n_iterations=10000,
         video_record=True,
         video_name="exercise5_3",
-        feedback_weights_ipsi=0.25 * ws_ref,
-        feedback_weights_contra=-0.25 * ws_ref,
+        # feedback_weights_ipsi=0.25 * ws_ref,
+        # feedback_weights_contra=-0.25 * ws_ref,
     )
 
     # Run the simulation
@@ -168,6 +168,6 @@ def exercise5_3():
 
 
 if __name__ == '__main__':
-    exercise5_2()
-    # exercise5_3()
+    # exercise5_2()
+    exercise5_3()
 
